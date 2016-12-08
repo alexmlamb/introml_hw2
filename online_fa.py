@@ -11,6 +11,7 @@ import numpy.random as rng
 import gzip
 import cPickle as pickle
 import random
+from aux import train_method, predict_method
 
 mn = gzip.open("/u/lambalex/data/mnist/mnist.pkl.gz")
 
@@ -46,6 +47,9 @@ def init_params_fa():
 
     params['W1'] = np.maximum(-2.0,rng.normal(size = (10,784))).astype('float32')
     params['W2'] =np.maximum(-2.0,rng.normal(size = (512, 10))).astype('float32')
+
+    params['h'] = 0.05 * rng.normal(size = (10,512)).astype('float32')
+    params['o'] = 0.05 *rng.normal(size = (10, 512)).astype('float32')
 
     return params
 
@@ -92,20 +96,38 @@ for iteration in xrange(0,1000000):
 
     #128 x 10
 
+    grad_oa_norm = np.sqrt(np.sum((grad_oa)**2, axis = 1, keepdims = True))
     
+    #grad_hs = grad_oa_norm * (np.dot(o_s, bfa['h']) + np.dot(onehot, bfa['o']))
 
-    grad_hs = np.dot(grad_oa, bfa['W2'].T)
+    grad_hs = np.dot(grad_oa, bfa['W2'].T) * 0.0 + np.dot(onehot, bfa['o']) * grad_oa_norm
 
     grad_ha = grad_hs
 
     grad_ha[h_a<=0] = 0.0
 
-    #128 x 512, 
+    #works if it takes grad_oa
 
-    grad_x = np.dot(grad_oa, bfa['W1'])
-    #grad_x = np.dot(grad_ha, bfa['W1'].T)
 
-    #print grad_x[0]
+    
+
+    #for j in range(0,1):
+        #train_method(grad_oa_norm, onehot, h_s)
+
+    #grad_oa_norm_est = predict_method(onehot, h_s)
+    #grad_ha_est[h_a<=0] = 0.0
+
+    #print "============="
+    #print "oa norm", grad_oa_norm[0:10]
+    #print "oa est", grad_oa_norm_est[0:10]
+
+    #grad_ha_est = grad_ha
+
+    #print "================"
+    #print "est", o_s_est[0]
+    #print "real", o_s[0]
+
+    #grad_x = np.dot(grad_oa_est, bfa['W1'])
 
     ###
     #Parameter gradients and update parameters
@@ -119,6 +141,5 @@ for iteration in xrange(0,1000000):
 
     p['W1'] -= grad_W1 * 0.001
     p['W2'] -= grad_W2 * 0.001
-
 
 
