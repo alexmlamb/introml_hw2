@@ -22,6 +22,7 @@ validx,validy = valid
 trainy = trainy.astype('int32')
 validy = validy.astype('int32')
 
+acclst = []
 
 def init_params():
 
@@ -52,6 +53,11 @@ def init_params_fa():
 p = init_params()
 pfa = init_params_fa()
 
+randx = 0.01 * rng.normal(size = (128,784)).astype('float32')
+rand_hs = 0.1 * rng.normal(size = (128,512)).astype('float32')
+
+h_map = {}
+
 for iteration in xrange(0,1000000):
 
     ###
@@ -59,7 +65,7 @@ for iteration in xrange(0,1000000):
     #given x,y
     ###
 
-    r = random.randint(0,40000)
+    r = random.randrange(0,40000,128)
 
     x = trainx[r:r+128]
     y = trainy[r:r+128].flatten()
@@ -74,16 +80,19 @@ for iteration in xrange(0,1000000):
 
     accuracy = (o_s.argmax(axis=1) == y).mean()
     
-    if iteration % 1000 == 0:
-        print accuracy
+    acclst.append(accuracy)
+    if len(acclst) == 2000:
+        acclst.pop(0)
 
+    if iteration % 1000 == 0:
+        print iteration, sum(acclst)/len(acclst)
 
     ###
     #Backward Prop
     ###
 
-    bfa = pfa
-    #bfa = p
+    #bfa = pfa
+    bfa = p
 
     onehot = np.zeros(shape=(x.shape[0],10)).astype('float32')
     onehot[np.arange(y.shape[0]),y] = 1.0
@@ -96,7 +105,7 @@ for iteration in xrange(0,1000000):
 
     grad_ha[h_a<=0] = 0.0
 
-    grad_x = np.dot(grad_ha, bfa['W1'].T)
+    #grad_x = np.dot(grad_ha, bfa['W1'].T)
 
     #print grad_x[0]
 
@@ -106,12 +115,26 @@ for iteration in xrange(0,1000000):
 
     #ha
     grad_W1 = np.dot(x.T, grad_ha)
+    #grad_W1 = np.dot(randx.T, grad_ha)
 
     #oa
-    grad_W2 = np.dot(h_s.T, grad_oa)
+    #grad_W2 = np.dot(h_s.T, grad_oa)
+    
+    if r in h_map:
+        h_s_use = h_map[r]
+        h_map[r] = h_s
+    else:
+        h_s_use = h_s
+        h_map[r] = h_s
+
+    grad_W2 = np.dot(h_s_use.T, grad_oa)
+
 
     p['W1'] -= grad_W1 * 0.001
     p['W2'] -= grad_W2 * 0.001
+
+
+
 
 
 
