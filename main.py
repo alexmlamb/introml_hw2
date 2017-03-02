@@ -132,9 +132,9 @@ for iteration in xrange(0,1000000):
     #Parameter gradients and update parameters
     ###
 
-    x_use = 0.0 * x
-    for ex in range(0,128):
-        x_use[ex] = -1 * randx[y[ex]]
+    x_use = x
+    #for ex in range(0,128):
+    #    x_use[ex] = -1 * randx[y[ex]]
     #ha
     grad_W1 = np.dot(x_use.T, grad_ha)
     #grad_W1 = np.dot(randx.T, grad_ha)
@@ -150,7 +150,7 @@ for iteration in xrange(0,1000000):
     #    h_map[r] = h_s
 
     #h_s_use = np.maximum(0.0, h_a_use)
-    h_s_use = 0.0 * h_s
+    h_s_use = h_s
 
     for ex in range(0,128):
         h_s_use[ex] = randhs[y[ex]]
